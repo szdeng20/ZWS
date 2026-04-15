@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Waste Segregation Project Schematic</title>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #4caf50;
+            --accent: #8bc34a;
+            --warning: #ff9800;
+            --danger: #e53935;
+            --info: #0288d1;
+            --dark: #1b5e20;
+            --light: #f1f8e9;
+            --bg: #e8f5e9;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, var(--dark), var(--primary));
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: "♻️ 🍎 🥬 🗑️";
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            opacity: 0.3;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+        .card.methodology::before { background: var(--primary); }
+        .card.steps::before { background: var(--accent); }
+        .card.takeaways::before { background: var(--warning); }
+        .card.impact::before { background: var(--info); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+            background: var(--light);
+        }
+        .card h2 {
+            color: var(--dark);
+            font-size: 1.5rem;
+        }
+        .card ul {
+            padding-left: 20px;
+        }
+        .card li {
+            margin-bottom: 8px;
+        }
+        .card .expand-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        .card.active .expand-content {
+            max-height: 500px;
+        }
+        .expand-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+        .expand-btn:hover {
+            background: var(--dark);
+        }
+
+        .process-flow {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1000px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .process-flow h2 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        .flow-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+        }
+        .flow-step {
+            background: var(--light);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            width: 180px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        .flow-step:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+        .flow-step .step-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .flow-step h3 {
+            margin-top: 10px;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        .flow-arrow {
+            font-size: 24px;
+            color: var(--primary);
+            align-self: center;
+        }
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 200px;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .flow-step:hover .tooltip {
+            opacity: 1;
+        }
+
+        .stats-section {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+        .stat-item h3 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        .stat-item p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .timeline {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1000px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .timeline h2 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        .timeline-container {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--secondary);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: var(--light);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .timeline-item:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 20px;
+            width: 15px;
+            height: 15px;
+            background: var(--dark);
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .timeline-item h4 {
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        .timeline-item p {
+            font-size: 0.95rem;
+        }
+
+        .key-takeaways {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1000px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .key-takeaways h2 {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        .takeaway-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .takeaway-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .takeaway-card:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-5px);
+        }
+        .takeaway-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .takeaway-card h3 {
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .quiz-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .quiz-section h2 {
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .quiz-option {
+            padding: 12px 20px;
+            background: var(--light);
+            border: 2px solid var(--secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .quiz-option:hover {
+            background: var(--secondary);
+            color: white;
+        }
+        .quiz-option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        .quiz-option.wrong {
+            background: #e53935;
+            color: white;
+            border-color: #e53935;
+        }
+        .quiz-result {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .next-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .container { grid-template-columns: 1fr; }
+            .flow-container { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+
+        .highlight {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(46, 125, 50, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+        }
+
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .tag {
+            background: var(--light);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            border: 1px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 Food Waste Segregation Project</h1>
+        <p>A comprehensive student-led initiative to reduce food waste through smart segregation, education, and sustainable practices.</p>
+    </div>
+
+    <div class="container">
+        <div class="card methodology" onclick="toggleCard(this)">
+            <div class="card-header">
+                <div class="card-icon">📋</div>
+                <h2>Key Methodology</h2>
+            </div>
+            <p>Our approach combined research, hands-on segregation, and community engagement to tackle food waste at the source.</p>
+            <div class="expand-content">
+                <ul>
+                    <li><strong>Waste Auditing:</strong> Systematic collection and categorization of food waste samples over 4 weeks</li>
+                    <li><strong>Segregation Framework:</strong> Developed a 4-category system (Edible, Compostable, Recyclable Packaging, Landfill)</li>
+                    <li><strong>Community Workshops:</strong> Conducted 5 interactive sessions teaching proper waste sorting</li>
+                    <li><strong>Data Tracking:</strong> Used digital logs to monitor waste reduction trends</li>
+                    <li><strong>Feedback Loops:</strong> Collected participant feedback to refine segregation protocols</li>
+                </ul>
+            </div>
+            <button class="expand-btn">Click to expand</button>
+        </div>
+
+        <div class="card steps" onclick="toggleCard(this)">
+            <div class="card-header">
+                <div class="card-icon">🔬</div>
+                <h2>Implementation Steps</h2>
+            </div>
+            <p>A phased approach to ensure systematic rollout and measurable impact.</p>
+            <div class="expand-content">
+                <ul>
+                    <li><strong>Phase 1:</strong> Baseline waste audit (Week 1-2)</li>
+                    <li><strong>Phase 2:</strong> Bin labeling and setup (Week 3)</li>
+                    <li><strong>Phase 3:</strong> Education campaigns & training (Week 4-6)</li>
+                    <li><strong>Phase 4:</strong> Active segregation monitoring (Week 7-10)</li>
+                    <li><strong>Phase 5:</strong> Data analysis and reporting (Week 11-12)</li>
+                    <li><strong>Phase 6:</strong> Recommendations and scaling plan (Week 13-14)</li>
+                </ul>
+            </div>
+            <button class="expand-btn">Click to expand</button>
+        </div>
+
+        <div class="card takeaways" onclick="toggleCard(this)">
+            <div class="card-header">
+                <div class="card-icon">💡</div>
+                <h2>Key Takeaways</h2>
+            </div>
+            <p>Critical insights that shaped the project's success and future recommendations.</p>
+            <div class="expand-content">
+                <ul>
+                    <li>Proper segregation reduced landfill waste by <strong>42%</strong></li>
+                    <li>Education was the single biggest factor in participation</li>
+                    <li>Clear bin labeling improved sorting accuracy by <strong>68%</strong></li>
+                    <li>Peer-to-peer learning was more effective than top-down instruction</li>
+                    <li>Consistent monitoring prevented "bin contamination" over time</li>
+                </ul>
+            </div>
+            <button class="expand-btn">Click to expand</button>
+        </div>
+
+        <div class="card impact" onclick="toggleCard(this)">
+            <div class="card-header">
+                <div class="card-icon">🌍</div>
+                <h2>Environmental Impact</h2>
+            </div>
+            <p>Measurable outcomes that demonstrate the project's contribution to sustainability.</p>
+            <div class="expand-content">
+                <ul>
+                    <li><strong>320 kg</strong> of food waste diverted from landfill</li>
+                    <li><strong>85 kg</strong> of compost produced for campus gardens</li>
+                    <li><strong>Reduced methane emissions</strong> equivalent to 150 kg CO2</li>
+                    <li><strong>Increased awareness</strong> among 85% of participants</li>
+                    <li>Model adopted by <strong>3 other student groups</strong> for replication</li>
+                </ul>
+            </div>
+            <button class="expand-btn">Click to expand</button>
+        </div>
+    </div>
+
+    <div class="process-flow">
+        <h2>🔄 Waste Segregation Process Flow</h2>
+        <div class="flow-container">
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <h3>Collection</h3>
+                <p>Gather all food waste in designated bins</p>
+                <div class="tooltip">Separate bins placed in cafeteria, dorms, and labs</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <h3>Initial Sort</h3>
+                <p>Remove non-food items and contaminants</p>
+                <div class="tooltip">Plastic, metal, and glass removed for recycling</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <h3>Categorize</h3>
+                <p>Sort into edible, compostable, or disposal</p>
+                <div class="tooltip">Edible food redirected to campus food bank</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <h3>Process</h3>
+                <p>Compost organic waste, recycle packaging</p>
+                <div class="tooltip">Compost facility turns waste into nutrient-rich soil</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <h3>Monitor</h3>
+                <p>Track metrics and adjust protocols</p>
+                <div class="tooltip">Weekly audits ensure compliance and improvement</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-item">
+            <h3>42%</h3>
+            <p>Landfill Waste Reduction</p>
+        </div>
+        <div class="stat-item">
+            <h3>320 kg</h3>
+            <p>Total Waste Diverted</p>
+        </div>
+        <div class="stat-item">
+            <h3>85%</h3>
+            <p>Participant Awareness</p>
+        </div>
+        <div class="stat-item">
+            <h3>150 kg</h3>
+            <p>CO2 Emissions Saved</p>
+        </div>
+    </div>
+
+    <div class="timeline">
+        <h2>📅 Project Timeline & Milestones</h2>
+        <div class="timeline-container">
+            <div class="timeline-item">
+                <h4>Week 1-2: Baseline Assessment</h4>
+                <p>Conducted initial waste audit to understand current practices and identify key waste streams.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 3: Infrastructure Setup</h4>
+                <p>Installed color-coded bins, created signage, and set up tracking systems.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 4-6: Education Campaign</h4>
+                <p>Launched workshops, poster campaigns, and digital resources to educate the campus community.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 7-10: Active Monitoring</h4>
+                <p>Implemented daily checks, collected data, and adjusted protocols based on observed behavior.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 11-12: Data Analysis</h4>
+                <p>Analyzed waste reduction metrics, contamination rates, and participant feedback.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Week 13-14: Reporting & Scaling</h4>
+                <p>Published final report, presented findings, and created a replication toolkit for other groups.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="key-takeaways">
+        <h2>🎯 Key Takeaways Summary</h2>
+        <div class="takeaway-grid">
+            <div class="takeaway-card">
+                <div class="takeaway-icon">🗂️</div>
+                <h3>Clear Labeling Works</h3>
+                <p>Visual guides and color-coding dramatically improved sorting accuracy.</p>
+            </div>
+            <div class="takeaway-card">
+                <div class="takeaway-icon">👥</div>
+                <h3>Peer Education is Key</h3>
+                <p>Student ambassadors were more effective than top-down directives.</p>
+            </div>
+            <div class="takeaway-card">
+                <div class="takeaway-icon">📊</div>
+                <h3>Data Drives Improvement</h3>
+                <p>Regular audits helped identify contamination hotspots and refine processes.</p>
+            </div>
+            <div class="takeaway-card">
+                <div class="takeaway-icon">♻️</div>
+                <h3>Composting Adds Value</h3>
+                <p>Turning waste into compost created a closed-loop system that benefited campus gardens.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-section">
+        <h2>🧠 Quick Knowledge Check</h2>
+        <div id="quiz-container">
+            <div class="quiz-question" id="quiz-question"></div>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div class="quiz-result" id="quiz-result"></div>
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Created for student project documentation | Food Waste Segregation Initiative</p>
+        <p>© 2026 | Designed for educational and awareness purposes</p>
+    </footer>
+
+    <script>
+        // Card expand/collapse
+        function toggleCard(card) {
+            card.classList.toggle('active');
+            const btn = card.querySelector('.expand-btn');
+            if (card.classList.contains('active')) {
+                btn.textContent = 'Click to collapse';
+            } else {
+                btn.textContent = 'Click to expand';
+            }
+        }
+
+        // Quiz functionality
+        const quizData = [
+            {
+                question: "What was the primary goal of the food waste segregation project?",
+                options: ["Increase cafeteria revenue", "Reduce food waste sent to landfill", "Create a new composting business", "Develop a mobile app for food sharing"],
+                correct: 1
+            },
+            {
+                question: "Which category was NOT part of the 4-bin segregation system?",
+                options: ["Edible Food", "Compostable Waste", "Recyclable Packaging", "Electronic Waste"],
+                correct: 3
+            },
+            {
+                question: "By what percentage did proper segregation reduce landfill waste?",
+                options: ["25%", "35%", "42%", "50%"],
+                correct: 2
+            },
+            {
+                question: "What was the most effective education method identified by the project?",
+                options: ["Mandatory lectures", "Email newsletters", "Peer-to-peer learning", "Social media campaigns"],
+                correct: 2
+            },
+            {
+                question: "How much CO2 emissions were saved through the project?",
+                options: ["50 kg", "100 kg", "150 kg", "200 kg"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestion = 0;
+        let quizAnswered = false;
+
+        function loadQuestion() {
+            const q = quizData[currentQuestion];
+            document.getElementById('quiz-question').textContent = q.question;
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            document.getElementById('quiz-result').textContent = '';
+            document.getElementById('next-btn').style.display = 'none';
+            quizAnswered = false;
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'quiz-option';
+                btn.textContent = opt;
+                btn.onclick = () => selectAnswer(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(idx, btn) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+            const correct = quizData[currentQuestion].correct;
+            const result = document.getElementById('quiz-result');
+
+            document.querySelectorAll('.quiz-option').forEach((opt, i) => {
+                if (i === correct) opt.classList.add('correct');
+                else if (i === idx) opt.classList.add('wrong');
+            });
+
+            if (idx === correct) {
+                result.textContent = "✅ Correct! Well done.";
+                result.style.color = "#4caf50";
+            } else {
+                result.textContent = "❌ Incorrect. The correct answer is highlighted.";
+                result.style.color = "#e53935";
+            }
+
+            if (currentQuestion < quizData.length - 1) {
+                document.getElementById('next-btn').style.display = 'inline-block';
+            } else {
+                result.textContent += " 🎉 You've completed all questions!";
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        // Initialize quiz
+        loadQuestion();
+
+        // Add scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card, .flow-step, .stat-item, .timeline-item, .takeaway-card').forEach(el => {
+            el.style.opacity = 0;
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
