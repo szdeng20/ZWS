@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Food Waste Segregation – Scope 3 Insights</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{
+font-family: Arial;
+margin:40px;
+background:#f5f7fa;
+color:#333;
+}
+
+h1{
+color:#2c7a7b;
+}
+
+.container{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:30px;
+margin-top:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.highlight{
+background:#e6fffa;
+padding:15px;
+border-left:5px solid #2c7a7b;
+margin-top:20px;
+}
+
+button{
+background:#2c7a7b;
+color:white;
+border:none;
+padding:10px 16px;
+border-radius:6px;
+cursor:pointer;
+margin-top:10px;
+}
+
+.hidden{
+display:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Food Waste Segregation Project – Key Insights</h1>
+
+<p>
+Student analysis of F&B tenants in Clementi Mall shows how operational practices
+influence <b>Scope 3 emissions</b>, especially:
+</p>
+
+<ul>
+<li><b>Scope 3 Category 1</b> – Food purchased but wasted</li>
+<li><b>Scope 3 Category 4</b> – Waste transport and incineration</li>
+</ul>
+
+<div class="container">
+
+<div class="card">
+<h3>Sources of Food Waste</h3>
+<canvas id="wasteChart"></canvas>
+</div>
+
+<div class="card">
+<h3>Tenant Support Needs</h3>
+<canvas id="supportChart"></canvas>
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Key Analytical Insights</h3>
+
+<ul>
+<li>🍽 <b>58% of waste comes from customer leftovers</b>, not kitchen preparation.</li>
+<li>🏪 <b>Smaller restaurants face major space constraints</b> that prevent adding segregation bins.</li>
+<li>⚡ <b>Operational speed during peak hours discourages segregation.</b></li>
+<li>📢 <b>Awareness exists but implementation drops over time.</b></li>
+</ul>
+
+</div>
+
+<div class="card highlight">
+
+<h3>Scope 3 Emissions Impact</h3>
+
+<p>
+If 11 restaurants segregate food waste into composting instead of incineration:
+</p>
+
+<ul>
+<li>34.5 tonnes food waste annually</li>
+<li>≈ <b>19 tonnes CO₂ avoided</b></li>
+<li>Equivalent to emissions from <b>~4 cars per year</b></li>
+</ul>
+
+<p>
+Better segregation directly reduces <b>Scope 3 waste emissions and transport-related emissions</b>.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>Top Recommended Solutions</h3>
+
+<ol>
+<li>🤖 Monthly chatbot feedback showing waste recycling performance</li>
+<li>🗑 Small general-waste bins on customer tables</li>
+<li>🏷 Visual stickers prompting correct disposal behaviour</li>
+<li>♻ Two smaller kitchen bins replacing one mixed bin</li>
+</ol>
+
+<button onclick="toggle()">Show Strategic Takeaway</button>
+
+<div id="takeaway" class="hidden">
+
+<h4>Main Strategic Takeaway</h4>
+
+<p>
+Food waste segregation failure is <b>not primarily a behaviour problem</b>.
+It is a <b>system design problem</b>.
+</p>
+
+<ul>
+<li>Kitchen workflow must integrate segregation naturally</li>
+<li>Customers must be part of the solution</li>
+<li>Continuous feedback improves compliance</li>
+</ul>
+
+<p>
+When segregation becomes <b>easy and visible</b>, Scope 3 emissions drop
+without increasing operational burden.
+</p>
+
+</div>
+
+</div>
+
+<script>
+
+const wasteChart = new Chart(
+document.getElementById('wasteChart'),
+{
+type:'pie',
+data:{
+labels:['Customer leftovers','Preparation waste','Expired items'],
+datasets:[{
+data:[58,33,9],
+backgroundColor:['#38b2ac','#4299e1','#ed8936']
+}]
+}
+}
+);
+
+const supportChart = new Chart(
+document.getElementById('supportChart'),
+{
+type:'bar',
+data:{
+labels:[
+'More space/bins',
+'Staff training',
+'Rewards',
+'Manpower',
+'Customer awareness'
+],
+datasets:[{
+data:[33.3,27.8,16.7,11.1,11.1],
+backgroundColor:'#2c7a7b'
+}]
+}
+}
+);
+
+function toggle(){
+document.getElementById("takeaway").classList.toggle("hidden");
+}
+
+</script>
+
+</body>
+</html>
