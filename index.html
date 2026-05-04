@@ -1,0 +1,482 @@
+
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  #game{width:100%;aspect-ratio:16/9;min-height:480px;display:flex;flex-direction:column;padding:24px 32px 18px;font-family:var(--font-sans);overflow:hidden;}
+  .screen{display:none;height:100%;flex-direction:column;}
+  .screen.active{display:flex;}
+  .score-bar{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;}
+  .stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:7px 16px;font-size:15px;color:var(--color-text-secondary);}
+  .stat b{color:var(--color-text-primary);font-weight:500;}
+  .progress-track{height:7px;background:var(--color-background-secondary);border-radius:4px;margin-bottom:14px;overflow:hidden;}
+  .progress-fill{height:100%;background:#3B6D11;border-radius:4px;transition:width .4s;}
+  .btn{padding:11px 22px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);font-size:16px;cursor:pointer;font-weight:500;color:var(--color-text-primary);transition:background .15s;}
+  .btn:hover{background:var(--color-background-secondary);}
+  .btn.primary{background:#27500A;color:#EAF3DE;border-color:transparent;}
+  .btn.primary:hover{opacity:.88;}
+  .nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:10px;}
+  .feedback{font-size:15px;padding:11px 15px;border-radius:var(--border-radius-md);line-height:1.6;}
+  .feedback.success{background:#EAF3DE;color:#27500A;border:0.5px solid #97C459;}
+  .feedback.error{background:#FCEBEB;color:#791F1F;border:0.5px solid #F09595;}
+
+  .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;align-items:center;}
+  .home-btns{display:flex;flex-direction:column;gap:12px;}
+  .home-illus{display:flex;align-items:center;justify-content:center;}
+
+  .sort-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;flex:1;overflow:hidden;}
+  .sort-left{display:flex;flex-direction:column;gap:10px;}
+  .sort-right{display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
+  .waste-tray{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:14px;display:flex;flex-direction:column;gap:10px;align-items:center;}
+  .drop-zone{border:2px dashed var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:12px;flex:1;transition:background .2s,border-color .2s;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
+  .drop-zone:hover{background:var(--color-background-secondary);}
+  .drop-zone.over{background:#E1F5EE;border-color:#1D9E75;}
+  .drop-zone.correct{background:#EAF3DE;border-color:#3B6D11;border-style:solid;}
+  .drop-zone.wrong{background:#FCEBEB;border-color:#A32D2D;border-style:solid;}
+  .zone-label{font-size:14px;font-weight:500;color:var(--color-text-secondary);margin-top:4px;}
+  .drag-item{cursor:grab;transition:opacity .15s,transform .15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .drag-item:active{cursor:grabbing;opacity:.7;transform:scale(.95);}
+  .drag-item.placed{opacity:.3;pointer-events:none;}
+  .result-chip{font-size:13px;padding:3px 10px;border-radius:20px;margin-top:4px;}
+  .chip-ok{background:#EAF3DE;color:#27500A;border:0.5px solid #97C459;}
+  .chip-bad{background:#FCEBEB;color:#791F1F;border:0.5px solid #F09595;}
+
+  .pipe-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;flex:1;overflow:hidden;}
+  .pipe-left{display:flex;flex-direction:column;gap:7px;overflow-y:auto;}
+  .pipe-right{display:flex;flex-direction:column;gap:10px;}
+  .pipe-bank{display:flex;flex-direction:column;gap:7px;padding:12px;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);flex:1;overflow-y:auto;}
+  .pipe-slot{display:flex;align-items:center;gap:10px;padding:9px 13px;border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);min-height:50px;background:var(--color-background-secondary);font-size:15px;color:var(--color-text-secondary);}
+  .bank-item{padding:9px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);font-size:15px;cursor:grab;display:flex;align-items:center;gap:10px;user-select:none;color:var(--color-text-primary);}
+  .bank-item.placed{opacity:.3;pointer-events:none;}
+
+  .quiz-layout{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;align-items:start;}
+  .quiz-q{font-size:19px;font-weight:500;color:var(--color-text-primary);margin-bottom:14px;line-height:1.5;}
+  .quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .quiz-opt{padding:0;border-radius:var(--border-radius-lg);border:2px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;transition:border-color .15s,background .15s;}
+  .quiz-opt:hover:not(:disabled){background:var(--color-background-secondary);}
+  .quiz-opt.correct{background:#EAF3DE;border-color:#3B6D11;}
+  .quiz-opt.wrong{background:#FCEBEB;border-color:#A32D2D;}
+  .opt-label{font-size:14px;color:var(--color-text-secondary);text-align:center;line-height:1.4;}
+  .quiz-opt.correct .opt-label{color:#27500A;}
+  .quiz-opt.wrong .opt-label{color:#791F1F;}
+
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  .result-card{padding:18px;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);text-align:center;}
+  .result-card .rc-val{font-size:34px;font-weight:500;color:var(--color-text-primary);}
+  .result-card .rc-lbl{font-size:14px;color:var(--color-text-secondary);margin-top:3px;}
+  h2.gtitle{font-size:26px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px;}
+  .gsub{font-size:16px;color:var(--color-text-secondary);margin-bottom:14px;line-height:1.5;}
+</style>
+
+<div id="game" role="main">
+
+<div id="screen-home" class="screen active">
+  <h2 class="gtitle">Zero Waste Food Journey</h2>
+  <p class="gsub">3 challenges on food waste segregation, digestion &amp; valorisation.</p>
+  <div class="home-grid">
+    <div class="home-btns">
+      <button class="btn primary" onclick="startMode('sort')">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <svg width="28" height="28" viewBox="0 0 28 28"><rect x="3" y="3" width="10" height="10" rx="3" fill="#5DCAA5"/><rect x="15" y="3" width="10" height="10" rx="3" fill="#EF9F27"/><rect x="3" y="15" width="10" height="10" rx="3" fill="#D85A30"/><rect x="15" y="15" width="10" height="10" rx="3" fill="#97C459"/></svg>
+          Challenge 1 — Sort the waste
+        </span>
+      </button>
+      <button class="btn" onclick="startMode('pipeline')">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <svg width="28" height="28" viewBox="0 0 28 28"><circle cx="5" cy="14" r="4" fill="#5DCAA5"/><rect x="9" y="13" width="5" height="2" fill="#888780"/><circle cx="18" cy="14" r="4" fill="#5DCAA5"/><rect x="22" y="13" width="4" height="2" fill="#888780"/><circle cx="14" cy="6" r="3" fill="#EF9F27"/><line x1="14" y1="9" x2="14" y2="13" stroke="#888780" stroke-width="1.5"/></svg>
+          Challenge 2 — Build the pipeline
+        </span>
+      </button>
+      <button class="btn" onclick="startMode('quiz')">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11" fill="none" stroke="#7F77DD" stroke-width="2"/><text x="14" y="19" text-anchor="middle" font-size="14" font-weight="600" fill="#7F77DD">?</text></svg>
+          Challenge 3 — Knowledge quiz
+        </span>
+      </button>
+    </div>
+    <div class="home-illus">
+      <svg width="240" height="200" viewBox="0 0 240 200">
+        <rect x="60" y="110" width="80" height="70" rx="6" fill="#A0522D"/>
+        <rect x="65" y="115" width="70" height="60" rx="4" fill="#C4832A"/>
+        <rect x="72" y="118" width="24" height="18" rx="3" fill="#EF9F27" opacity=".7"/>
+        <ellipse cx="100" cy="110" rx="42" ry="10" fill="#8B4513"/>
+        <path d="M75 108 Q85 85 95 90 Q105 70 115 88 Q120 80 128 95 Q130 108 75 108Z" fill="#5DCAA5"/>
+        <circle cx="88" cy="98" r="5" fill="#3B8B30"/>
+        <circle cx="108" cy="94" r="4" fill="#D85A30"/>
+        <path d="M155 40 Q160 20 170 30 Q175 15 185 25 Q190 35 185 45 Q175 55 160 50Z" fill="#5DCAA5"/>
+        <rect x="168" y="45" width="4" height="30" fill="#8B4513"/>
+        <ellipse cx="140" cy="155" rx="15" ry="8" fill="#888780" opacity=".4"/>
+        <rect x="130" y="130" width="20" height="28" rx="4" fill="#5F5E5A"/>
+        <rect x="133" y="125" width="14" height="8" rx="3" fill="#444441"/>
+        <rect x="128" y="155" width="24" height="6" rx="2" fill="#444441"/>
+        <path d="M140 130 Q160 115 170 120 Q175 110 185 118" stroke="#97C459" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <circle cx="185" cy="118" r="4" fill="#97C459"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div id="screen-sort" class="screen">
+  <h2 class="gtitle">Challenge 1 — Sort the waste</h2>
+  <div class="score-bar">
+    <div class="stat">Round <b id="sort-round">1</b>/<b id="sort-total">5</b></div>
+    <div class="stat">Score <b id="sort-score">0</b></div>
+    <div class="stat" id="ss-box" style="display:none">Streak <b id="ss-val">0</b> 🔥</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="sort-prog" style="width:0%"></div></div>
+  <div class="sort-layout" style="flex:1;">
+    <div class="sort-left">
+      <div class="waste-tray" id="sort-tray"></div>
+      <div class="feedback" id="sort-fb" style="display:none"></div>
+      <div class="nav" id="sort-nav" style="display:none;">
+        <button class="btn primary" onclick="nextSortRound()">Next →</button>
+        <button class="btn" onclick="showHome()">← Menu</button>
+      </div>
+      <div id="sort-back"><button class="btn" onclick="showHome()" style="margin-top:auto;">← Menu</button></div>
+    </div>
+    <div class="sort-right" id="sort-zones"></div>
+  </div>
+</div>
+
+<div id="screen-pipeline" class="screen">
+  <h2 class="gtitle">Challenge 2 — Build the pipeline</h2>
+  <div class="score-bar"><div class="stat">Attempts <b id="pipe-att">0</b></div></div>
+  <div class="pipe-layout" style="flex:1;overflow:hidden;">
+    <div class="pipe-left" id="pipe-slots"></div>
+    <div class="pipe-right">
+      <div style="font-size:14px;color:var(--color-text-secondary);">Drag stages into the correct order</div>
+      <div class="pipe-bank" id="pipe-bank"></div>
+      <div class="feedback" id="pipe-fb" style="display:none;"></div>
+      <div class="nav">
+        <button class="btn primary" onclick="checkPipeline()">Check order</button>
+        <button class="btn" onclick="resetPipeline()">Reset</button>
+        <button class="btn" onclick="showHome()">← Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-quiz" class="screen">
+  <h2 class="gtitle">Challenge 3 — Knowledge quiz</h2>
+  <div class="score-bar">
+    <div class="stat">Q <b id="quiz-num">1</b>/<b id="quiz-tot">6</b></div>
+    <div class="stat">Score <b id="quiz-sc">0</b></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="quiz-prog" style="width:0%"></div></div>
+  <div class="quiz-layout">
+    <div>
+      <div class="quiz-q" id="quiz-q"></div>
+      <div class="quiz-opts" id="quiz-opts"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="feedback" id="quiz-fb" style="display:none"></div>
+      <div class="nav" id="quiz-nav" style="display:none;margin-top:0;padding-top:0;">
+        <button class="btn primary" onclick="nextQ()">Next →</button>
+        <button class="btn" onclick="showHome()">← Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-results" class="screen">
+  <h2 class="gtitle" id="res-t"></h2>
+  <p class="gsub" id="res-s"></p>
+  <div class="result-grid" id="res-g"></div>
+  <div class="feedback success" id="res-tip" style="font-size:16px;"></div>
+  <div class="nav"><button class="btn primary" onclick="showHome()">← Play again</button></div>
+</div>
+
+</div>
+
+<script>
+const svgIcons = {
+  rice: `<svg width="70" height="70" viewBox="0 0 70 70"><rect x="10" y="18" width="50" height="36" rx="8" fill="#C4832A"/><ellipse cx="35" cy="18" rx="25" ry="8" fill="#A0522D"/><ellipse cx="35" cy="18" rx="20" ry="5" fill="#D4A843" opacity=".8"/><circle cx="24" cy="32" r="3" fill="#EAF3DE" opacity=".9"/><circle cx="35" cy="28" r="3" fill="#EAF3DE" opacity=".9"/><circle cx="46" cy="33" r="3" fill="#EAF3DE" opacity=".9"/><circle cx="28" cy="40" r="3" fill="#EAF3DE" opacity=".9"/><circle cx="42" cy="38" r="3" fill="#EAF3DE" opacity=".9"/></svg>`,
+  vegpeel: `<svg width="70" height="70" viewBox="0 0 70 70"><path d="M15 50 Q20 25 35 20 Q50 15 55 35 Q58 50 45 55 Q30 62 15 50Z" fill="#5DCAA5"/><path d="M22 45 Q28 30 38 28 Q48 26 50 38" stroke="#3B8B30" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M30 20 Q32 10 28 8" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="52" cy="22" rx="8" ry="5" fill="#EF9F27" transform="rotate(-20,52,22)"/><path d="M52 17 Q54 12 50 10" stroke="#8B4513" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  oil: `<svg width="70" height="70" viewBox="0 0 70 70"><rect x="22" y="28" width="26" height="34" rx="5" fill="#EF9F27" opacity=".85"/><rect x="26" y="22" width="18" height="10" rx="3" fill="#BA7517"/><rect x="32" y="14" width="6" height="12" rx="2" fill="#854F0B"/><ellipse cx="35" cy="42" rx="9" ry="6" fill="#FAC775" opacity=".5"/><path d="M30 50 Q35 46 40 50" stroke="#854F0B" stroke-width="1.5" fill="none"/></svg>`,
+  bread: `<svg width="70" height="70" viewBox="0 0 70 70"><ellipse cx="35" cy="40" rx="25" ry="16" fill="#D4A843"/><ellipse cx="35" cy="32" rx="24" ry="14" fill="#EF9F27"/><path d="M14 36 Q35 22 56 36" stroke="#C4832A" stroke-width="1.5" fill="none"/><ellipse cx="26" cy="33" rx="4" ry="2.5" fill="#C4832A" opacity=".4"/><ellipse cx="44" cy="31" rx="4" ry="2.5" fill="#C4832A" opacity=".4"/></svg>`,
+  frass: `<svg width="70" height="70" viewBox="0 0 70 70"><ellipse cx="35" cy="45" rx="22" ry="14" fill="#97C459"/><ellipse cx="35" cy="42" rx="20" ry="12" fill="#C0DD97"/><circle cx="26" cy="42" r="3" fill="#639922"/><circle cx="35" cy="38" r="3" fill="#639922"/><circle cx="44" cy="43" r="3" fill="#639922"/><circle cx="30" cy="48" r="2" fill="#3B6D11"/><circle cx="41" cy="47" r="2" fill="#3B6D11"/><path d="M28 28 Q32 18 36 25 Q40 15 44 24" stroke="#8B4513" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  bin_organic: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="14" y="22" width="36" height="34" rx="5" fill="#5F5E5A"/><rect x="14" y="22" width="36" height="8" rx="3" fill="#444441"/><rect x="10" y="18" width="44" height="8" rx="3" fill="#3B6D11"/><path d="M26 14 Q32 8 38 14" stroke="#27500A" stroke-width="2.5" fill="none" stroke-linecap="round"/><text x="32" y="46" text-anchor="middle" font-size="18" fill="#97C459">🌱</text></svg>`,
+  bin_general: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="14" y="22" width="36" height="34" rx="5" fill="#5F5E5A"/><rect x="14" y="22" width="36" height="8" rx="3" fill="#444441"/><rect x="10" y="18" width="44" height="8" rx="3" fill="#888780"/><path d="M26 14 Q32 8 38 14" stroke="#5F5E5A" stroke-width="2.5" fill="none" stroke-linecap="round"/><line x1="26" y1="36" x2="38" y2="48" stroke="#B4B2A9" stroke-width="2.5"/><line x1="38" y1="36" x2="26" y2="48" stroke="#B4B2A9" stroke-width="2.5"/></svg>`,
+  bin_recycle: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="14" y="22" width="36" height="34" rx="5" fill="#5F5E5A"/><rect x="14" y="22" width="36" height="8" rx="3" fill="#444441"/><rect x="10" y="18" width="44" height="8" rx="3" fill="#185FA5"/><path d="M26 14 Q32 8 38 14" stroke="#0C447C" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M24 42 L32 32 L40 42 L37 42 L37 50 L27 50 L27 42Z" fill="#85B7EB"/></svg>`,
+  bin_liquid: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="14" y="22" width="36" height="34" rx="5" fill="#5F5E5A"/><rect x="14" y="22" width="36" height="8" rx="3" fill="#444441"/><rect x="10" y="18" width="44" height="8" rx="3" fill="#EF9F27"/><path d="M26 14 Q32 8 38 14" stroke="#BA7517" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M32 34 Q38 40 36 46 Q34 52 28 50 Q22 48 24 42 Q26 36 32 34Z" fill="#FAC775"/></svg>`,
+  bin_compost: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="26" width="44" height="32" rx="5" fill="#A0522D"/><rect x="12" y="26" width="40" height="8" fill="#C4832A"/><rect x="20" y="28" width="12" height="10" rx="2" fill="#EF9F27" opacity=".6"/><ellipse cx="32" cy="26" rx="23" ry="7" fill="#8B4513"/><path d="M24 16 Q28 8 32 12 Q36 4 42 12" stroke="#5DCAA5" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="30" cy="20" r="3" fill="#3B8B30"/></svg>`,
+  bin_digester: `<svg width="64" height="64" viewBox="0 0 64 64"><ellipse cx="32" cy="20" rx="18" ry="10" fill="#444441"/><rect x="14" y="20" width="36" height="32" rx="4" fill="#5F5E5A"/><ellipse cx="32" cy="52" rx="18" ry="6" fill="#3d3d3a"/><rect x="28" y="10" width="8" height="12" rx="3" fill="#888780"/><circle cx="32" cy="9" r="4" fill="#B4B2A9"/><path d="M22 36 Q32 28 42 36" stroke="#97C459" stroke-width="2" fill="none"/></svg>`,
+  bin_hazard: `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="14" y="22" width="36" height="34" rx="5" fill="#5F5E5A"/><rect x="14" y="22" width="36" height="8" rx="3" fill="#444441"/><rect x="10" y="18" width="44" height="8" rx="3" fill="#A32D2D"/><path d="M26 14 Q32 8 38 14" stroke="#791F1F" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M32 32 L28 46 L36 46Z" fill="#F09595"/><circle cx="32" cy="29" r="2" fill="#F09595"/></svg>`,
+  pipe1: `<svg width="44" height="44" viewBox="0 0 44 44"><rect x="8" y="28" width="28" height="12" rx="4" fill="#888780"/><rect x="10" y="30" width="8" height="8" rx="2" fill="#B4B2A9"/><rect x="20" y="30" width="8" height="8" rx="2" fill="#B4B2A9"/><path d="M14 24 L22 8 L30 24" fill="#5DCAA5"/></svg>`,
+  pipe2: `<svg width="44" height="44" viewBox="0 0 44 44"><rect x="8" y="12" width="28" height="22" rx="5" fill="#888780"/><rect x="12" y="16" width="20" height="14" rx="3" fill="#B4B2A9"/><path d="M16 20 L22 14 L28 20" fill="none" stroke="#5F5E5A" stroke-width="2"/><path d="M22 28 L22 38" stroke="#5F5E5A" stroke-width="3" stroke-linecap="round"/></svg>`,
+  pipe3: `<svg width="44" height="44" viewBox="0 0 44 44"><ellipse cx="22" cy="22" rx="16" ry="16" fill="#5F5E5A"/><ellipse cx="22" cy="22" rx="12" ry="12" fill="#888780"/><circle cx="22" cy="22" r="5" fill="#3B6D11"/><path d="M22 6 L22 10 M38 22 L34 22 M22 38 L22 34 M6 22 L10 22" stroke="#B4B2A9" stroke-width="2" stroke-linecap="round"/></svg>`,
+  pipe4: `<svg width="44" height="44" viewBox="0 0 44 44"><path d="M10 36 L22 8 L34 36Z" fill="#EF9F27"/><path d="M14 32 L22 14 L30 32Z" fill="#FAC775"/><circle cx="22" cy="34" r="4" fill="#854F0B"/></svg>`,
+  pipe5: `<svg width="44" height="44" viewBox="0 0 44 44"><ellipse cx="22" cy="32" rx="16" ry="8" fill="#8B4513"/><ellipse cx="22" cy="28" rx="14" ry="7" fill="#C4832A"/><path d="M14 20 Q18 10 22 14 Q26 6 30 14 Q34 20 22 22Z" fill="#5DCAA5"/></svg>`,
+  pipe6: `<svg width="44" height="44" viewBox="0 0 44 44"><ellipse cx="22" cy="32" rx="16" ry="8" fill="#C4832A"/><path d="M14 28 Q18 20 22 24 Q26 16 30 22 Q34 28 14 28Z" fill="#888780"/><circle cx="18" cy="22" r="3" fill="#B4B2A9"/><circle cx="26" cy="20" r="3" fill="#B4B2A9"/></svg>`,
+  q_methane: `<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="28" fill="#EAF3DE"/><circle cx="40" cy="40" r="20" fill="#5DCAA5"/><path d="M30 48 Q40 24 50 48" stroke="#27500A" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M34 40 L46 40" stroke="#27500A" stroke-width="3" stroke-linecap="round"/></svg>`,
+  q_co2: `<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="28" fill="#E6F1FB"/><circle cx="40" cy="40" r="20" fill="#85B7EB"/><text x="40" y="46" text-anchor="middle" font-size="16" font-weight="600" fill="#042C53">CO₂</text></svg>`,
+  q_h2: `<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="28" fill="#FBEAF0"/><circle cx="40" cy="40" r="20" fill="#ED93B1"/><text x="40" y="46" text-anchor="middle" font-size="16" font-weight="600" fill="#4B1528">H₂</text></svg>`,
+  q_n2: `<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="28" fill="#F1EFE8"/><circle cx="40" cy="40" r="20" fill="#B4B2A9"/><text x="40" y="46" text-anchor="middle" font-size="16" font-weight="600" fill="#2C2C2A">N₂</text></svg>`,
+  q_dewater_cost: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#EAF3DE"/><path d="M40 20 Q52 30 52 44 Q52 56 40 62 Q28 56 28 44 Q28 30 40 20Z" fill="#85B7EB"/><line x1="40" y1="36" x2="40" y2="56" stroke="white" stroke-width="3"/><line x1="32" y1="50" x2="48" y2="50" stroke="white" stroke-width="3"/></svg>`,
+  q_dewater_smell: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#FAEEDA"/><path d="M30 44 Q32 36 40 34 Q48 36 50 44 Q52 54 40 56 Q28 54 30 44Z" fill="#EF9F27" opacity=".6"/><path d="M34 30 Q36 22 34 18" stroke="#888780" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M40 28 Q42 20 40 16" stroke="#888780" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M46 30 Q48 22 46 18" stroke="#888780" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  q_dewater_patho: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#FCEBEB"/><circle cx="40" cy="40" r="18" fill="#F09595"/><line x1="29" y1="29" x2="51" y2="51" stroke="#791F1F" stroke-width="4" stroke-linecap="round"/><line x1="51" y1="29" x2="29" y2="51" stroke="#791F1F" stroke-width="4" stroke-linecap="round"/></svg>`,
+  q_bsf_protein: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#EAF3DE"/><ellipse cx="40" cy="44" rx="14" ry="8" fill="#8B4513"/><ellipse cx="30" cy="40" rx="6" ry="4" fill="#A0522D" transform="rotate(-20,30,40)"/><ellipse cx="50" cy="40" rx="6" ry="4" fill="#A0522D" transform="rotate(20,50,40)"/><ellipse cx="40" cy="34" rx="7" ry="5" fill="#C4832A"/><circle cx="36" cy="32" r="1.5" fill="#2C2C2A"/><circle cx="44" cy="32" r="1.5" fill="#2C2C2A"/></svg>`,
+  q_bsf_methane: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#FAEEDA"/><ellipse cx="40" cy="44" rx="14" ry="8" fill="#888780"/><path d="M34 36 L40 20 L46 36" fill="#EF9F27"/></svg>`,
+  q_nutrient_compost: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#EAF3DE"/><ellipse cx="40" cy="52" rx="20" ry="10" fill="#8B4513"/><ellipse cx="40" cy="48" rx="18" ry="9" fill="#C4832A"/><path d="M28 38 Q32 24 40 28 Q44 18 52 28 Q56 36 40 38Z" fill="#5DCAA5"/></svg>`,
+  q_nutrient_burn: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#FCEBEB"/><path d="M32 58 Q36 40 40 46 Q44 30 48 44 Q52 36 56 50 Q54 62 28 62Z" fill="#D85A30"/><path d="M36 52 Q38 44 40 48 Q42 38 44 46" stroke="#FAC775" stroke-width="2" fill="none"/></svg>`,
+  q_oil_biodiesel: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#FAEEDA"/><rect x="28" y="30" width="24" height="30" rx="5" fill="#EF9F27" opacity=".8"/><rect x="32" y="24" width="16" height="10" rx="3" fill="#BA7517"/><rect x="37" y="16" width="6" height="12" rx="2" fill="#854F0B"/><path d="M32 52 Q40 46 48 52" stroke="#854F0B" stroke-width="2" fill="none"/></svg>`,
+  q_oil_drain: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#FCEBEB"/><ellipse cx="40" cy="50" rx="18" ry="6" fill="#888780"/><ellipse cx="40" cy="46" rx="10" ry="5" fill="#EF9F27" opacity=".7"/><path d="M36 18 L36 44" stroke="#A32D2D" stroke-width="3" stroke-linecap="round"/><path d="M44 18 L44 44" stroke="#A32D2D" stroke-width="3" stroke-linecap="round"/><line x1="28" y1="28" x2="52" y2="44" stroke="#A32D2D" stroke-width="3" stroke-linecap="round"/></svg>`,
+  q_rag_monitor: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#EEEDFE"/><rect x="20" y="22" width="40" height="28" rx="5" fill="#AFA9EC"/><rect x="24" y="26" width="32" height="20" rx="3" fill="#EEEDFE"/><rect x="27" y="29" width="26" height="2" rx="1" fill="#7F77DD"/><rect x="27" y="34" width="18" height="2" rx="1" fill="#534AB7" opacity=".5"/><rect x="27" y="39" width="22" height="2" rx="1" fill="#534AB7" opacity=".5"/><rect x="30" y="50" width="20" height="4" rx="2" fill="#534AB7"/><rect x="36" y="54" width="8" height="8" rx="1" fill="#7F77DD"/></svg>`,
+  q_rag_sort: `<svg width="80" height="80" viewBox="0 0 80 80"><rect x="12" y="12" width="56" height="56" rx="12" fill="#E1F5EE"/><rect x="20" y="26" width="16" height="16" rx="4" fill="#5DCAA5"/><rect x="44" y="26" width="16" height="16" rx="4" fill="#EF9F27"/><rect x="20" y="48" width="16" height="16" rx="4" fill="#D85A30"/><rect x="44" y="48" width="16" height="16" rx="4" fill="#7F77DD"/><line x1="36" y1="34" x2="44" y2="34" stroke="#888780" stroke-width="2"/><line x1="36" y1="56" x2="44" y2="56" stroke="#888780" stroke-width="2"/></svg>`,
+};
+
+const sortRounds=[
+  {itemSvg:'rice', label:'Leftover cooked rice',
+   zones:[{id:'a',svg:'bin_organic',label:'Organic bin',correct:true,hint:'Cooked food is perfect bio-digester feedstock — high moisture, easily broken down.'},
+          {id:'b',svg:'bin_general',label:'General waste',correct:false},
+          {id:'c',svg:'bin_recycle',label:'Recyclables',correct:false}]},
+  {itemSvg:'vegpeel', label:'Vegetable peels & fruit rinds',
+   zones:[{id:'a',svg:'bin_compost',label:'Compost bin',correct:true,hint:'Plant peelings are rich in fibre and nutrients — ideal for composting or bio-digestion.'},
+          {id:'b',svg:'bin_recycle',label:'Recyclables',correct:false},
+          {id:'c',svg:'bin_general',label:'General waste',correct:false}]},
+  {itemSvg:'oil', label:'Used cooking oil',
+   zones:[{id:'a',svg:'bin_liquid',label:'Liquid organic waste',correct:true,hint:'Cooking oil can be valorised into biodiesel — a food-waste-to-energy pathway.'},
+          {id:'b',svg:'bin_general',label:'General drain',correct:false},
+          {id:'c',svg:'bin_recycle',label:'Recycling bin',correct:false}]},
+  {itemSvg:'bread', label:'Unsold bakery bread',
+   zones:[{id:'a',svg:'bin_digester',label:'Bio-digester feedstock',correct:true,hint:'Unsold bread is excellent for anaerobic digestion — producing biogas and digestate.'},
+          {id:'b',svg:'bin_general',label:'Incineration waste',correct:false},
+          {id:'c',svg:'bin_recycle',label:'Recyclables',correct:false}]},
+  {itemSvg:'frass', label:'BSF larvae frass',
+   zones:[{id:'a',svg:'bin_compost',label:'Compost / soil amendment',correct:true,hint:'BSF frass is a nutrient-rich fertiliser — closing the loop from scraps to agriculture.'},
+          {id:'b',svg:'bin_general',label:'General waste',correct:false},
+          {id:'c',svg:'bin_hazard',label:'Hazardous waste',correct:false}]}
+];
+
+const pipelineStages=[
+  {id:1,icon:'pipe1',name:'Collection & segregation',sub:'Separate at source'},
+  {id:2,icon:'pipe2',name:'Volumetric de-watering',sub:'Reduce weight & haulage'},
+  {id:3,icon:'pipe3',name:'Anaerobic digestion',sub:'Microbes break down organics'},
+  {id:4,icon:'pipe4',name:'Biogas capture',sub:'Methane for energy'},
+  {id:5,icon:'pipe5',name:'Digestate as compost',sub:'Nutrients to soil'},
+  {id:6,icon:'pipe6',name:'Black soldier fly larvae',sub:'Residue → animal feed'}
+];
+
+const quizQs=[
+  {q:'What gas is the main product of anaerobic digestion?',
+   opts:[{svg:'q_methane',l:'Methane',c:true},{svg:'q_co2',l:'Carbon dioxide',c:false},{svg:'q_h2',l:'Hydrogen',c:false},{svg:'q_n2',l:'Nitrogen',c:false}],
+   exp:'Anaerobic digestion produces biogas which is primarily methane (CH₄) — a renewable energy source.'},
+  {q:'Why is de-watering food waste important?',
+   opts:[{svg:'q_dewater_cost',l:'Cuts weight & haulage costs',c:true},{svg:'q_dewater_smell',l:'Improves odour',c:false},{svg:'q_dewater_patho',l:'Kills pathogens',c:false},{svg:'q_dewater_cost',l:'Speeds up sorting',c:false}],
+   exp:'Food waste is ~80% water. Removing it before haulage significantly cuts transport costs.'},
+  {q:'Why are black soldier fly larvae valuable?',
+   opts:[{svg:'q_bsf_protein',l:'Protein-rich animal feed',c:true},{svg:'q_bsf_methane',l:'Produce methane gas',c:false},{svg:'q_bsf_protein',l:'Replace packaging',c:false},{svg:'q_bsf_methane',l:'Generate solar energy',c:false}],
+   exp:'BSF larvae are 40–50% protein — a sustainable feed for aquaculture and poultry.'},
+  {q:'What does "nutrient loop closure" mean?',
+   opts:[{svg:'q_nutrient_compost',l:'Waste nutrients return to farmland',c:true},{svg:'q_nutrient_burn',l:'Burning waste for heat',c:false},{svg:'q_nutrient_compost',l:'Reusing packaging',c:false},{svg:'q_nutrient_burn',l:'Exporting food waste',c:false}],
+   exp:'Closing the nutrient loop means waste is composted or digested and the fertiliser grows more food.'},
+  {q:'Which stream should cooking oil go into?',
+   opts:[{svg:'q_oil_biodiesel',l:'Organic liquid for biodiesel',c:true},{svg:'q_oil_drain',l:'Storm drain',c:false},{svg:'q_oil_drain',l:'Mixed recyclables',c:false},{svg:'q_oil_biodiesel',l:'Incineration',c:false}],
+   exp:'Used cooking oil is a biodiesel feedstock. Drains cause blockages and water pollution.'},
+  {q:'The AI chatbot (RAG tech) in the digester system helps staff…',
+   opts:[{svg:'q_rag_monitor',l:'Monitor & predict issues',c:true},{svg:'q_rag_sort',l:'Sort recyclables',c:false},{svg:'q_rag_monitor',l:'Control temperature',c:false},{svg:'q_rag_sort',l:'Convert biogas',c:false}],
+   exp:'The RAG-powered chatbot helps operations staff track performance and anticipate problems.'}
+];
+
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5);}
+
+let sortState={round:0,score:0,streak:0};
+let pipeState={order:[],attempts:0};
+let quizState={idx:0,score:0,answered:false};
+
+function showHome(){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-home').classList.add('active');}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function startMode(m){
+  if(m==='sort'){sortState={round:0,score:0,streak:0};showScreen('screen-sort');loadSortRound();}
+  if(m==='pipeline'){initPipeline();showScreen('screen-pipeline');}
+  if(m==='quiz'){quizState={idx:0,score:0,answered:false};showScreen('screen-quiz');loadQ();}
+}
+
+function loadSortRound(){
+  const r=sortRounds[sortState.round];
+  document.getElementById('sort-round').textContent=sortState.round+1;
+  document.getElementById('sort-total').textContent=sortRounds.length;
+  document.getElementById('sort-score').textContent=sortState.score;
+  document.getElementById('sort-prog').style.width=(sortState.round/sortRounds.length*100)+'%';
+  if(sortState.streak>1){document.getElementById('ss-box').style.display='';document.getElementById('ss-val').textContent=sortState.streak;}
+  else document.getElementById('ss-box').style.display='none';
+  document.getElementById('sort-fb').style.display='none';
+  document.getElementById('sort-nav').style.display='none';
+  document.getElementById('sort-back').style.display='';
+
+  document.getElementById('sort-tray').innerHTML=`
+    <div class="drag-item" draggable="true" id="drag-item" ondragstart="dragStart(event)" ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">
+      ${svgIcons[r.itemSvg]}
+      <div style="font-size:14px;color:var(--color-text-secondary);text-align:center;">${r.label}</div>
+    </div>`;
+
+  const zones=document.getElementById('sort-zones');
+  zones.innerHTML='';
+  const shuffledZones=shuffle(r.zones);
+  shuffledZones.forEach(it=>{
+    const z=document.createElement('div');
+    z.className='drop-zone';z.id='zone-'+it.id;z.dataset.zid=it.id;
+    z.ondragover=e=>{e.preventDefault();z.classList.add('over');};
+    z.ondragleave=()=>z.classList.remove('over');
+    z.ondrop=e=>{e.preventDefault();z.classList.remove('over');dropOnZone(it.id,r);};
+    z.innerHTML=`${svgIcons[it.svg]}<div class="zone-label">${it.label}</div><div id="zi-${it.id}"></div>`;
+    zones.appendChild(z);
+  });
+}
+
+function dragStart(e){e.dataTransfer.setData('text','item');}
+function dropOnZone(zid,round){
+  const chosen=round.zones.find(x=>x.id===zid);
+  const fb=document.getElementById('sort-fb');
+  document.getElementById('drag-item').classList.add('placed');
+  const chip=document.createElement('div');
+  chip.className='result-chip';
+  if(chosen.correct){
+    sortState.score+=10+sortState.streak*2;sortState.streak++;
+    document.getElementById('zone-'+zid).classList.add('correct');
+    chip.className='result-chip chip-ok';chip.textContent='✓';
+    document.getElementById('zi-'+zid).appendChild(chip);
+    fb.className='feedback success';fb.innerHTML=`<b>Correct!</b> ${round.zones.find(x=>x.correct).hint}`;
+  } else {
+    sortState.streak=0;
+    document.getElementById('zone-'+zid).classList.add('wrong');
+    chip.className='result-chip chip-bad';chip.textContent='✗';
+    document.getElementById('zi-'+zid).appendChild(chip);
+    const cv=round.zones.find(x=>x.correct);
+    document.getElementById('zone-'+cv.id).classList.add('correct');
+    fb.className='feedback error';fb.innerHTML=`<b>Not quite.</b> Goes in <b>${cv.label}</b>. ${cv.hint}`;
+    document.querySelectorAll('.drop-zone').forEach(z=>{z.ondrop=null;z.ondragover=null;});
+  }
+  fb.style.display='';
+  document.getElementById('sort-nav').style.display='';
+  document.getElementById('sort-back').style.display='none';
+  document.getElementById('sort-score').textContent=sortState.score;
+  if(sortState.streak>1){document.getElementById('ss-box').style.display='';document.getElementById('ss-val').textContent=sortState.streak;}
+}
+
+function nextSortRound(){
+  sortState.round++;
+  if(sortState.round>=sortRounds.length){
+    document.getElementById('res-t').textContent='Challenge 1 complete!';
+    document.getElementById('res-s').textContent='Waste segregation results:';
+    document.getElementById('res-g').innerHTML=`<div class="result-card"><div class="rc-val">${sortState.score}</div><div class="rc-lbl">Score</div></div><div class="result-card"><div class="rc-val">${sortState.streak}</div><div class="rc-lbl">Best streak</div></div>`;
+    document.getElementById('res-tip').textContent='Proper segregation at source is the biggest factor in whether waste can be valorised. Mall tenants play a critical role!';
+    showScreen('screen-results');return;
+  }
+  loadSortRound();
+}
+
+let _tEl=null,_tClone=null;
+function touchStart(e){
+  _tEl=e.currentTarget;_tClone=_tEl.cloneNode(true);
+  _tClone.style.cssText='position:fixed;opacity:.75;pointer-events:none;z-index:9999;';
+  document.body.appendChild(_tClone);
+}
+function touchMove(e){
+  if(!_tClone)return;
+  const t=e.touches[0];
+  _tClone.style.left=(t.clientX-35)+'px';_tClone.style.top=(t.clientY-35)+'px';
+  e.preventDefault();
+}
+function touchEnd(e){
+  if(_tClone){_tClone.remove();_tClone=null;}
+  const t=e.changedTouches[0];
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  if(!el)return;
+  const zone=el.closest('.drop-zone');
+  if(zone){const r=sortRounds[sortState.round];dropOnZone(zone.dataset.zid,r);}
+  _tEl=null;
+}
+
+function initPipeline(){
+  pipeState.order=[];
+  const slots=document.getElementById('pipe-slots');
+  slots.innerHTML='';
+  for(let i=0;i<pipelineStages.length;i++){
+    const s=document.createElement('div');s.className='pipe-slot';s.id='slot-'+i;
+    s.innerHTML=`<span style="font-size:14px;color:var(--color-text-tertiary);">Step ${i+1}</span>`;
+    s.ondragover=e=>{e.preventDefault();s.style.borderColor='#1D9E75';s.style.background='#E1F5EE';};
+    s.ondragleave=()=>{s.style.borderColor='';s.style.background='';};
+    s.ondrop=e=>{e.preventDefault();s.style.borderColor='';s.style.background='';dropPipe(i,e);};
+    slots.appendChild(s);
+  }
+  const bank=document.getElementById('pipe-bank');bank.innerHTML='';
+  shuffle(pipelineStages).forEach(st=>{
+    const b=document.createElement('div');b.className='bank-item';b.draggable=true;b.id='bank-'+st.id;b.dataset.stid=st.id;
+    b.innerHTML=`${svgIcons[st.icon]}<div><div style="font-size:15px;font-weight:500;color:var(--color-text-primary)">${st.name}</div><div style="font-size:12px;color:var(--color-text-secondary)">${st.sub}</div></div>`;
+    b.ondragstart=e=>e.dataTransfer.setData('stid',st.id);
+    bank.appendChild(b);
+  });
+  document.getElementById('pipe-fb').style.display='none';
+}
+function dropPipe(idx,e){
+  const stid=parseInt(e.dataTransfer.getData('stid'));
+  const stage=pipelineStages.find(s=>s.id===stid);if(!stage)return;
+  if(pipeState.order[idx]!==undefined){const prev=document.getElementById('bank-'+pipeState.order[idx]);if(prev)prev.classList.remove('placed');}
+  pipeState.order[idx]=stid;
+  const slot=document.getElementById('slot-'+idx);
+  slot.innerHTML=`${svgIcons[stage.icon]}<div><div style="font-size:15px;font-weight:500;color:var(--color-text-primary)">${stage.name}</div><div style="font-size:12px;color:var(--color-text-secondary)">${stage.sub}</div></div>`;
+  const bel=document.getElementById('bank-'+stid);if(bel)bel.classList.add('placed');
+}
+function checkPipeline(){
+  pipeState.attempts++;document.getElementById('pipe-att').textContent=pipeState.attempts;
+  let correct=0,allFilled=true;
+  for(let i=0;i<pipelineStages.length;i++){if(pipeState.order[i]===undefined){allFilled=false;break;}if(pipeState.order[i]===pipelineStages[i].id)correct++;}
+  const fb=document.getElementById('pipe-fb');
+  if(!allFilled){fb.className='feedback error';fb.textContent='Fill all 6 slots first.';fb.style.display='';return;}
+  if(correct===6){
+    fb.className='feedback success';fb.innerHTML='<b>Perfect!</b> You mapped the full valorisation pipeline correctly.';fb.style.display='';
+    setTimeout(()=>{
+      document.getElementById('res-t').textContent='Challenge 2 complete!';
+      document.getElementById('res-s').textContent='Pipeline ordering results:';
+      document.getElementById('res-g').innerHTML=`<div class="result-card"><div class="rc-val">${pipeState.attempts}</div><div class="rc-lbl">Attempts</div></div><div class="result-card"><div class="rc-val">6/6</div><div class="rc-lbl">Correct stages</div></div>`;
+      document.getElementById('res-tip').textContent='Each stage adds value: segregation enables digestion, de-watering cuts costs, biogas generates energy, digestate closes the nutrient loop.';
+      showScreen('screen-results');
+    },1600);
+  } else {
+    fb.className='feedback error';fb.innerHTML=`<b>${correct}/6 correct.</b> Hint: start with separating waste at source, then reduce its volume before the digester.`;fb.style.display='';
+  }
+}
+function resetPipeline(){initPipeline();}
+
+function loadQ(){
+  const q=quizQs[quizState.idx];
+  document.getElementById('quiz-num').textContent=quizState.idx+1;
+  document.getElementById('quiz-tot').textContent=quizQs.length;
+  document.getElementById('quiz-sc').textContent=quizState.score;
+  document.getElementById('quiz-prog').style.width=Math.round((quizState.idx/quizQs.length)*100)+'%';
+  document.getElementById('quiz-q').textContent=q.q;
+  const opts=document.getElementById('quiz-opts');opts.innerHTML='';
+  const shuffledOpts=shuffle(q.opts);
+  shuffledOpts.forEach(o=>{
+    const b=document.createElement('button');b.className='quiz-opt';
+    b.innerHTML=`${svgIcons[o.svg]}<div class="opt-label">${o.l}</div>`;
+    b.onclick=()=>answerQ(o.c,b,q.exp);
+    opts.appendChild(b);
+  });
+  document.getElementById('quiz-fb').style.display='none';
+  document.getElementById('quiz-nav').style.display='none';
+  quizState.answered=false;
+}
+function answerQ(correct,btn,exp){
+  if(quizState.answered)return;quizState.answered=true;
+  document.querySelectorAll('.quiz-opt').forEach(o=>o.disabled=true);
+  const fb=document.getElementById('quiz-fb');
+  if(correct){quizState.score+=10;btn.classList.add('correct');fb.className='feedback success';fb.innerHTML=`<b>Correct!</b> ${exp}`;}
+  else{btn.classList.add('wrong');fb.className='feedback error';fb.innerHTML=`<b>Not quite.</b> ${exp}`;}
+  fb.style.display='';document.getElementById('quiz-sc').textContent=quizState.score;
+  document.getElementById('quiz-nav').style.display='';
+}
+function nextQ(){
+  quizState.idx++;
+  if(quizState.idx>=quizQs.length){
+    const pct=Math.round((quizState.score/(quizQs.length*10))*100);
+    let msg=pct>=80?'Excellent! You understand the full zero-waste valorisation cycle.':pct>=50?'Good effort! Review how digestion and BSF farming close the loop.':'Keep exploring — revisit the pipeline and try again!';
+    document.getElementById('res-t').textContent='Challenge 3 complete!';
+    document.getElementById('res-s').textContent='Quiz results:';
+    document.getElementById('res-g').innerHTML=`<div class="result-card"><div class="rc-val">${quizState.score}</div><div class="rc-lbl">Score</div></div><div class="result-card"><div class="rc-val">${pct}%</div><div class="rc-lbl">Accuracy</div></div>`;
+    document.getElementById('res-tip').textContent=msg;
+    showScreen('screen-results');return;
+  }
+  loadQ();
+}
+</script>
